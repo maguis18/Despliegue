@@ -58,25 +58,78 @@ view = st.sidebar.selectbox(
 )
 
 if view == 'bienvenida':
-    
-    st.title("Bienvenido a este dashboard de analisis de datos")
-    #fila que abarcara toda la pantalla horizontalmente para poner una imagen de Bozeman 
-    st.subheader("En este dashboard analizaremos y compararemos diversos datos de Bozeman y México proveninentes de airbnb ")
-    def Home():
-        col1, col2 = st.columns(2, gap="large")
+    st.markdown("<h1 style='text-align: center; color: #000000;'>Dashboard para Analisis de Datos</h1>", unsafe_allow_html=True)
+    st.write(
+        "Bienvenido al dashboard de análisis de datos de Bozeman, Montana. "
+        "Aquí podrás explorar diferentes aspectos relacionados con el turismo en esta hermosa ciudad. "
+        "Los datos han sido obtenidos desde Airbnb, por lo que nos enfocaremos en analizar el impacto de esta plataforma en la ciudad y sus diversas variables. "
+        "Entre lo que podras encontrar en este dashboard se encuentran: "
+    )
+
+cols = st.columns(3)
+
+with cols[0]:
+    st.info("📊 **Gráficas interactivas**")
+with cols[1]:
+    st.info("📋 **Tablas de datos**")
+with cols[2]:
+    st.info("🌡️ **Heatmap**")
+cols = st.columns(3)
+
+with cols[0]:
+    st.info("🖼️ **Imágenes de Bozeman**")
+with cols[1]:
+    st.info("🎞️ **Videos de Bozeman**")
+
+with cols[2]:
+    st.info("🧠 **Análisis avanzado**")
+st.write("Pero antes, conozcamos un poco más sobre Bozeman, Montana.")
+
+
+def Home():
+        st.markdown("<h1 style='text-align: center; color: #4ea4c9;'>Bozeman</h1>", unsafe_allow_html=True)
+        st.write("Bozeman es una ciudad ubicada en el suroeste d" \
+        "el estado de Montana, en los Estados Unidos. Rodeada por majestuosas " \
+        "montañas y paisajes naturales, es conocida por ser una puerta de " \
+        "entrada al Parque Nacional Yellowstone y por ofrecer una combinación " \
+        "única de naturaleza, ciencia, educación y cultura.")
+        st.write("La ciudad alberga la Universidad Estatal de Montana, lo que le da un ambiente vibrante y juvenil. " \
+        "Además, Bozeman es famosa por sus actividades al aire libre, como el senderismo, el esquí y la pesca, por lo qeu la mayoria de sus turistas van a la ciudad para vivir estas experiencias")
+        
+        from PIL import Image
+
+        img1 = Image.open("imagenes/bozeman.jpg").resize((250, 150))
+        img2 = Image.open("imagenes/bozeman6.jpg").resize((250, 150))
+        img3 = Image.open("imagenes/bozeman7.jpg").resize((250, 150))
+
+        col1, col2, col3 = st.columns(3)
+
         with col1:
-            st.info("**Bozeman**")
-            st.write("Bozeman es una ciudad ubicada en el suroeste del estado de Montana, en los Estados Unidos. Rodeada por majestuosas montañas y paisajes naturales, es conocida por ser una puerta de entrada al Parque Nacional Yellowstone y por ofrecer una combinación única de naturaleza, ciencia, educación y cultura.")
-            st.image("imagenes/bozeman.jpg", width=200)
-            # 🎯 Aquí va la gráfica, directamente debajo de los metrics
-            st.markdown("""---""")
-            c1, c2 = st.columns(2, gap="large")
-            with c1:
-                st.info("**Habitantes**")
-                st.metric(label="En 2024", value="56,123")
-            with c2:
-                st.info("**Turistas en 2024**")
-                st.metric(label="Visitantes", value="300,000")
+            st.image(img1)
+        with col2:
+            st.image(img2)
+        with col3:
+            st.image(img3)
+
+        st.markdown("""---""")
+
+        c1,c2,c3,c4 = st.columns(4, gap="large")
+        with c1:
+            st.info("**Habitantes**")
+            st.metric(label="En 2024", value="56,123")
+            
+        with c2:
+            st.info("**Turistas en 2024**")
+            st.metric(label="Visitantes", value="300,000")
+        with c3:
+            st.info("**Turistas en 2025**")
+            st.metric(label="Visitantes", value="150,000")
+        with c4:                
+            st.info("**Año fundación**")
+            st.metric(label="", value="1864")
+        
+        column1,column2, = st.columns(2, gap="large")
+        with column1:
             st.info("**Plataformas de alojamiento**")
             data_plataformas = {
                 "Plataforma": ["Airbnb", "Booking.com", "Vrbo", "Expedia", "Otros"],
@@ -91,6 +144,39 @@ if view == 'bienvenida':
                 hole=0.3
             )
             st.plotly_chart(fig, use_container_width=True)
+        with column2:
+            st.info("**¿Por qué visitan Bozeman?**")
+            razones_data = {
+                "Razón": [
+                    "Naturaleza y senderismo",
+                    "Parque Yellowstone",
+                    "Esquí y deportes de invierno",
+                    "Universidad Estatal de Montana",
+                    "Eventos culturales y arte",
+                    "Gastronomía y cervecerías"
+                ],
+                "Porcentaje": [30, 25, 20, 10, 10, 5]
+            }
+
+            df_razones = pd.DataFrame(razones_data)
+
+            # Crear gráfica de barras horizontales
+            fig_razones_bar = px.bar(
+                df_razones,
+                x="Porcentaje",
+                y="Razón",
+                orientation='h',
+                title="Principales razones del turismo en Bozeman (2024)",
+                color="Razón",  # opcional: para dar color diferente a cada barra
+                text="Porcentaje"
+            )
+
+            # Ajustar visual
+            fig_razones_bar.update_layout(showlegend=False)
+            fig_razones_bar.update_traces(textposition='outside')
+            st.plotly_chart(fig_razones_bar, use_container_width=True)
+
+        
         st.info("**¿Cómo se ve Bozeman**")
         c1, c2 = st.columns(2, gap="large")
         with c1:
@@ -136,56 +222,8 @@ if view == 'bienvenida':
                 """,
                 unsafe_allow_html=True
             )
-
-        with col2:
-            # Subcolumnas internas para métricas
-            st.info("**Más de 300 días soleados al año**")
-            st.info("**Alberga la Montana State University**")
-            st.info("**Apodada el Silicon Valley de las Rocosas**")
-            st.info("**Una de las ciudades de más rápido crecimiento de EE.UU**")
-            st.info("**Bozeman está tan cerca del Parque Nacional Yellowstone**")
-            st.markdown("""---""")
-            c3, c4 = st.columns(2, gap="large")
-            with c3:
-                st.info("**Turistas en 2025**")
-                st.metric(label="Visitantes", value="150,000")
-            with c4:                
-                st.info("**Año fundación**")
-                st.metric(label="", value="1864")
-            st.info("**¿Por qué visitan Bozeman?**")
-            razones_data = {
-                "Razón": [
-                    "Naturaleza y senderismo",
-                    "Parque Yellowstone",
-                    "Esquí y deportes de invierno",
-                    "Universidad Estatal de Montana",
-                    "Eventos culturales y arte",
-                    "Gastronomía y cervecerías"
-                ],
-                "Porcentaje": [30, 25, 20, 10, 10, 5]
-            }
-
-            df_razones = pd.DataFrame(razones_data)
-
-            # Crear gráfica de barras horizontales
-            fig_razones_bar = px.bar(
-                df_razones,
-                x="Porcentaje",
-                y="Razón",
-                orientation='h',
-                title="Principales razones del turismo en Bozeman (2024)",
-                color="Razón",  # opcional: para dar color diferente a cada barra
-                text="Porcentaje"
-            )
-
-            # Ajustar visual
-            fig_razones_bar.update_layout(showlegend=False)
-            fig_razones_bar.update_traces(textposition='outside')
-            st.plotly_chart(fig_razones_bar, use_container_width=True)
-
-            
-            
-    Home()
+      
+Home()
 st.markdown("""---""")
 
 if view == 'Analisis Univariado':
@@ -328,11 +366,9 @@ if view == 'regresion lineal simple':
     y = df[selected_col].to_numpy()
 
     fig = px.scatter(df, x=selected_col2, y=selected_col, title='Regresión lineal simple')
-
     m, b = np.polyfit(x, y, 1)
     y_pred = m * x + b
     fig.add_trace(go.Scatter(x=x, y=y_pred, mode='lines', name='Línea de regresión'))
-
     st.plotly_chart(fig)
 
 
