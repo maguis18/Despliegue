@@ -1,0 +1,10 @@
+[theme]
+# Base del tema: "light" o "dark"
+base="light"
+
+# Colores personalizados (azulados)
+primaryColor="#1E90FF"               # DodgerBlue: acentos (botones, sliders, enlaces)
+backgroundColor="#F0F8FF"            # AliceBlue: fondo principal muy suave
+secondaryBackgroundColor="#D6EBFF"   # un azul claro para sidebar y contenedores
+textColor="#0D1B2A"                  # un azul oscuro intenso para el texto
+font="sans serif"

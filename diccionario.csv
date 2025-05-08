@@ -1,0 +1,39 @@
+Variable,Descripción
+host_response_time,Tiempo promedio en que el anfitrión responde a un mensaje.
+host_response_rate,Porcentaje de respuestas del anfitrión a los mensajes recibidos.
+host_acceptance_rate,Porcentaje de solicitudes de reserva que el anfitrión acepta.
+host_is_superhost,Indica si el anfitrión tiene el estatus de 'superhost'.
+host_verifications,Métodos con los que el anfitrión ha verificado su identidad.
+host_has_profile_pic,Indica si el anfitrión tiene una foto de perfil.
+host_identity_verified,Indica si la identidad del anfitrión ha sido verificada.
+property_type,"Tipo de propiedad ofrecida (casa, departamento, etc.)."
+room_type,"Tipo de habitación ofrecida (privada, compartida, etc.)."
+amenities,Lista de servicios y comodidades incluidos.
+price,Precio por noche en dólares estadounidenses.
+has_availability,Indica si el alojamiento tiene disponibilidad activa.
+instant_bookable,Permite reservar sin aprobación previa del anfitrión.
+host_listings_count,Cantidad de anuncios activos que tiene el anfitrión.
+host_total_listings_count,Cantidad total de anuncios (activos e inactivos) del anfitrión.
+accommodates,Número máximo de huéspedes que puede alojar el lugar.
+bathrooms,Cantidad de baños en el alojamiento.
+bedrooms,Número de habitaciones disponibles.
+beds,Número total de camas disponibles.
+minimum_nights,Número mínimo de noches requeridas para reservar.
+maximum_nights,Número máximo de noches permitidas para reservar.
+minimum_nights_avg_ntm,Promedio móvil del mínimo de noches (últimos meses).
+maximum_nights_avg_ntm,Promedio móvil del máximo de noches (últimos meses).
+availability_30,Días disponibles para reserva en los próximos 30 días.
+availability_60,Días disponibles para reserva en los próximos 60 días.
+availability_90,Días disponibles para reserva en los próximos 90 días.
+availability_365,Días disponibles para reserva en los próximos 365 días.
+number_of_reviews_ltm,Número de reseñas en los últimos 12 meses.
+number_of_reviews_l30d,Número de reseñas en los últimos 30 días.
+review_scores_rating,Puntaje general de las reseñas.
+review_scores_accuracy,Puntaje sobre la precisión de la descripción.
+review_scores_cleanliness,Puntaje sobre la limpieza del lugar.
+review_scores_checkin,Puntaje sobre el proceso de check-in.
+review_scores_communication,Puntaje sobre la comunicación del anfitrión.
+review_scores_location,Puntaje sobre la ubicación del alojamiento.
+review_scores_value,Puntaje sobre el valor recibido por el precio.
+calculated_host_listings_count,Número total de alojamientos únicos administrados por el anfitrión.
+reviews_per_month,Promedio de reseñas por mes.
