@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-
 from sklearn.linear_model import LinearRegression, LogisticRegression
-
+import numpy as np
+import plotly.graph_objects as go
 
 @st.cache_resource
 
@@ -314,32 +314,26 @@ if view == 'Analisis Univariado':
     #fig = px.imshow(df.corr(), text_auto=True)
     #st.plotly_chart(fig)
 
-
 if view == 'regresion lineal simple':
     df, numeric_cols, text_cols = load_data()
-    st.title('Regresion lineal simple')
+    st.title('Regresión lineal simple')
+
     col1, col2 = st.columns(2, gap="large")
     with col1:
-        selected_col = st.selectbox('Selecciona una variable dependiente', numeric_cols)
+        selected_col = st.selectbox('Selecciona una variable dependiente (Y)', numeric_cols, index=1 if len(numeric_cols) > 1 else 0)
     with col2:
-        selected_col2 = st.selectbox( 'Selecciona una variable independiente',numeric_cols)
+        selected_col2 = st.selectbox('Selecciona una variable independiente (X)', numeric_cols, index=0)
 
-    fig = px.scatter(df, x=selected_col, y=selected_col2)
+    x = df[selected_col2].to_numpy()
+    y = df[selected_col].to_numpy()
+
+    fig = px.scatter(df, x=selected_col2, y=selected_col, title='Regresión lineal simple')
+
+    m, b = np.polyfit(x, y, 1)
+    y_pred = m * x + b
+    fig.add_trace(go.Scatter(x=x, y=y_pred, mode='lines', name='Línea de regresión'))
+
     st.plotly_chart(fig)
-    
-
-
-if view == 'regresion lineal multiple':
-    df, numeric_cols, text_cols = load_data()
-    st.title('Regresion lineal multiple')
-    col1, col2 = st.columns(2, gap="large")
-    with col1:
-        selected_col = st.selectbox('Selecciona una variable dependiente', numeric_cols)
-    with col2:
-        selected_col2 = st.multiselect( 'Selecciona variables independientes',numeric_cols)
-    fig = px.scatter_matrix(df, dimensions=[selected_col]+selected_col2)
-    st.plotly_chart(fig)
-
 
 
 if view == 'regresion logistica':
