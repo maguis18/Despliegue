@@ -4,6 +4,8 @@ import plotly.express as px
 from sklearn.linear_model import LinearRegression, LogisticRegression
 import numpy as np
 import plotly.graph_objects as go
+from scipy.stats import pearsonr
+
 
 @st.cache_resource
 
@@ -252,7 +254,7 @@ if view == 'Analisis Univariado':
     df_descripciones, _, _ = load_data_variable()  # evitar sobrescribir variables previas
 
     st.markdown("<h1 style='text-align: center; color: #000000;'>Análisis Univariado</h1>", unsafe_allow_html=True)
-    st.write('En este apartado podrás conocer más a fondo los datos recopilados para el análisis.' \
+    st.write('En este apartado podrás conocer más a fondo los datos recopilados para el análisis ' \
     'asi como una breve descripción de cada variable.')
 
     # Métricas resumen
@@ -344,7 +346,7 @@ if view == 'Analisis Univariado':
 
 if view == 'regresion lineal simple':
     df, numeric_cols, text_cols = load_data()
-    st.title('Regresión lineal simple')
+    st.title('📈 Regresión lineal simple')
 
     col1, col2 = st.columns(2, gap="large")
     with col1:
@@ -355,22 +357,63 @@ if view == 'regresion lineal simple':
     x = df[selected_col2].to_numpy()
     y = df[selected_col].to_numpy()
 
-    fig = px.scatter(df, x=selected_col2, y=selected_col, title='Regresión lineal simple')
+    # Cálculo de coeficientes de regresión
     m, b = np.polyfit(x, y, 1)
     y_pred = m * x + b
-    # Mostrar coeficientes
-    st.markdown("### 📈 Coeficientes de la regresión")
 
+
+    st.markdown("### 🧮 Fórmula de la pendiente:")
+    st.latex(r"m = \frac{n \sum(xy) - \sum x \sum y}{n \sum(x^2) - (\sum x)^2}")
+
+    st.markdown("### 📌 Coeficientes de la recta:")
     col1, col2 = st.columns(2)
     with col1:
         st.metric("Pendiente (m)", f"{m:.4f}")
     with col2:
         st.metric("Intercepto (b)", f"{b:.4f}")
 
-    # Mostrar ecuación en formato matemático
     st.latex(f"y = {m:.4f}x + {b:.4f}")
 
-    fig.add_trace(go.Scatter(x=x, y=y_pred, mode='lines', name='Línea de regresión'))
+    # Correlación de Pearson y R²
+    r, _ = pearsonr(x, y)
+    r2 = r ** 2
+
+    st.markdown("### 🔗 Correlaciones")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Coef. de correlación (r)", f"{r:.4f}")
+    with col2:
+        st.metric("Coef. de determinación (R²)", f"{r2:.4f}")
+
+    # Gráfico con línea de regresión
+    fig = px.scatter(df, x=selected_col2, y=selected_col, title='Regresión lineal simple')
+    fig.add_trace(go.Scatter(x=x, y=y_pred, mode='lines', name='Línea de regresión', line=dict(color='red')))
+    st.plotly_chart(fig, use_container_width=True)
+
+# Asegurar que numeric_cols sea lista
+    if isinstance(numeric_cols, pd.Index):
+        numeric_cols = list(numeric_cols)
+
+    if not numeric_cols:
+        st.warning("⚠️ No hay columnas numéricas disponibles para calcular correlaciones.")
+    else:
+        # Calcular matriz de correlación
+        corr_matrix = df[numeric_cols].corr()
+
+        # Mostrar como tabla
+        st.subheader("📋 Tabla de Correlaciones")
+        st.dataframe(corr_matrix.style.background_gradient(cmap='Blues').format("{:.2f}"))
+
+
+if view == 'regresion lineal multiple':
+    df, numeric_cols, text_cols = load_data()
+    st.title('Regresion lineal multiple')
+    col1, col2 = st.columns(2, gap="large")
+    with col1:
+        selected_col = st.selectbox('Selecciona una variable dependiente', numeric_cols)
+    with col2:
+        selected_col2 = st.multiselect( 'Selecciona variables independientes',numeric_cols)
+    fig = px.scatter_matrix(df, dimensions=[selected_col]+selected_col2)
     st.plotly_chart(fig)
 
 
