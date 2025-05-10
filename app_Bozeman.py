@@ -183,7 +183,8 @@ if view == 'bienvenida':
         with c1:
             imagenes = [
                 {"titulo": "Centro de Bozeman", "ruta": "imagenes/bozeman4.jpg"},
-                {"titulo": "Paisaje de Bozeman", "ruta": "imagenes/bozeman5.jpg"}
+                {"titulo": "Paisaje de Bozeman", "ruta": "imagenes/bozeman5.jpg"},
+                {"titulo": "Paisaje de Bozeman", "ruta": "imagenes/bozeman7.jpg"},
             ]
 
             if "imagen_index" not in st.session_state:
@@ -288,7 +289,7 @@ if view == 'Analisis Univariado':
         selected_var = st.selectbox("Selecciona una variable para ver su significado:", df_descripciones["Variable"])
         descripcion = df_descripciones[df_descripciones["Variable"] == selected_var]["Descripción"].values[0]
         st.info(f"**{selected_var}**: {descripcion}")
-
+    
     #COLUMNAS que existen
     def graph():
         numeric_cols = df.select_dtypes(['float', 'int']).columns.tolist()
@@ -341,9 +342,21 @@ if view == 'Analisis Univariado':
                 fig = None
             if fig:
                 st.plotly_chart(fig, use_container_width=True)
+        
     graph()
+    if isinstance(numeric_cols, pd.Index):
+        numeric_cols = list(numeric_cols)
 
+    if not numeric_cols:
+        st.warning("⚠️ No hay columnas numéricas disponibles para calcular correlaciones.")
+    else:
+        # Calcular matriz de correlación
+        corr_matrix = df[numeric_cols].corr()
 
+        # Mostrar como tabla
+        st.subheader("📋 Tabla de Correlaciones")
+        st.dataframe(corr_matrix.style.background_gradient(cmap='coolwarm').format("{:.2f}"))
+    st.markdown("""---""")
 if view == 'regresion lineal simple':
     df, numeric_cols, text_cols = load_data()
     st.title('📈 Regresión lineal simple')
@@ -357,52 +370,69 @@ if view == 'regresion lineal simple':
     x = df[selected_col2].to_numpy()
     y = df[selected_col].to_numpy()
 
-    # Cálculo de coeficientes de regresión
+    # Calcular regresión
     m, b = np.polyfit(x, y, 1)
     y_pred = m * x + b
 
-
-    st.markdown("### 🧮 Fórmula de la pendiente:")
-    st.latex(r"m = \frac{n \sum(xy) - \sum x \sum y}{n \sum(x^2) - (\sum x)^2}")
-
-    st.markdown("### 📌 Coeficientes de la recta:")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.metric("Pendiente (m)", f"{m:.4f}")
-    with col2:
-        st.metric("Intercepto (b)", f"{b:.4f}")
-
-    st.latex(f"y = {m:.4f}x + {b:.4f}")
-
-    # Correlación de Pearson y R²
+    # Calcular correlaciones
     r, _ = pearsonr(x, y)
     r2 = r ** 2
 
-    st.markdown("### 🔗 Correlaciones")
+    # Mostrar coeficientes y fórmula
+    col1, col2 = st.columns(2)
+    st.write(b )
+    with col1:
+        st.info(" 📌 Coeficientes de la recta:")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Pendiente (m)", f"{m:.4f}")
+        with col2:
+            st.metric("Intercepto (b)", f"{b:.4f}")
+        st.latex(f"y = {m:.4f}x + {b:.4f}")
+
+    st.info("🔗 Correlaciones")
     col1, col2 = st.columns(2)
     with col1:
         st.metric("Coef. de correlación (r)", f"{r:.4f}")
     with col2:
         st.metric("Coef. de determinación (R²)", f"{r2:.4f}")
 
-    # Gráfico con línea de regresión
-    fig = px.scatter(df, x=selected_col2, y=selected_col, title='Regresión lineal simple')
-    fig.add_trace(go.Scatter(x=x, y=y_pred, mode='lines', name='Línea de regresión', line=dict(color='red')))
+    # Gráfico
+    fig = go.Figure()
+
+    # Puntos reales (azules)
+    fig.add_trace(go.Scatter(
+        x=x, y=y,
+        mode='markers',
+        name='Valores reales',
+        marker=dict(color='blue')
+    ))
+
+    # Puntos predichos (rojos)
+    fig.add_trace(go.Scatter(
+        x=x, y=y_pred,
+        mode='markers',
+        name='Valores predichos',
+        marker=dict(color='red', symbol='circle-open')
+    ))
+
+    # Línea de regresión
+    fig.add_trace(go.Scatter(
+        x=np.sort(x),
+        y=np.sort(y_pred),
+        mode='lines',
+        name='Línea de regresión',
+        line=dict(color='red', width=2)
+    ))
+
+    fig.update_layout(
+        title='Gráfico de dispersión y regresión',
+        xaxis_title=selected_col2,
+        yaxis_title=selected_col,
+        height=500
+    )
+
     st.plotly_chart(fig, use_container_width=True)
-
-# Asegurar que numeric_cols sea lista
-    if isinstance(numeric_cols, pd.Index):
-        numeric_cols = list(numeric_cols)
-
-    if not numeric_cols:
-        st.warning("⚠️ No hay columnas numéricas disponibles para calcular correlaciones.")
-    else:
-        # Calcular matriz de correlación
-        corr_matrix = df[numeric_cols].corr()
-
-        # Mostrar como tabla
-        st.subheader("📋 Tabla de Correlaciones")
-        st.dataframe(corr_matrix.style.background_gradient(cmap='Blues').format("{:.2f}"))
 
 
 if view == 'regresion lineal multiple':
