@@ -25,7 +25,7 @@ st.set_page_config(
 
 def load_data_logistic():
     # Cambia el nombre del archivo por el del dataset real para regresión logística
-    df = pd.read_csv('Bozeman_V2.csv')
+    df = pd.read_csv('Bozeman_V2_clean.csv')
     numeric_df = df.select_dtypes(['float','int'])
     numeric_cols = numeric_df.columns.tolist()
 
@@ -380,24 +380,24 @@ if view == 'regresion lineal simple':
 
     # Mostrar coeficientes y fórmula
     col1, col2 = st.columns(2)
-    st.write(b )
+
+    # en el primer panel, muestro coeficientes
     with col1:
-        st.info(" 📌 Coeficientes de la recta:")
-        col1, col2 = st.columns(2)
-        with col1:
+        # ¡ojo! no reuses col1/col2 aquí, usa otros nombres:
+        coef_c1, coef_c2 = st.columns(2)
+        with coef_c1:
             st.metric("Pendiente (m)", f"{m:.4f}")
-        with col2:
+        with coef_c2:
             st.metric("Intercepto (b)", f"{b:.4f}")
-        st.latex(f"y = {m:.4f}x + {b:.4f}")
 
-    st.info("🔗 Correlaciones")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.metric("Coef. de correlación (r)", f"{r:.4f}")
+    # en el segundo panel, muestro correlaciones
     with col2:
-        st.metric("Coef. de determinación (R²)", f"{r2:.4f}")
-
-    # Gráfico
+        corr_c1, corr_c2 = st.columns(2)
+        with corr_c1:
+            st.metric("Coef. de correlación (r)", f"{r:.4f}")
+        with corr_c2:
+            st.metric("Coef. de determinación (R²)", f"{r2:.4f}")
+        # Gráfico
     fig = go.Figure()
 
     # Puntos reales (azules)
@@ -437,40 +437,152 @@ if view == 'regresion lineal simple':
 
 if view == 'regresion lineal multiple':
     df, numeric_cols, text_cols = load_data()
-    st.title('Regresion lineal multiple')
-    col1, col2 = st.columns(2, gap="large")
-    with col1:
-        selected_col = st.selectbox('Selecciona una variable dependiente', numeric_cols)
-    with col2:
-        selected_col2 = st.multiselect( 'Selecciona variables independientes',numeric_cols)
-    fig = px.scatter_matrix(df, dimensions=[selected_col]+selected_col2)
-    st.plotly_chart(fig)
+    st.title('Regresión lineal múltiple')
+
+    # Selección de variable dependiente e independientes
+    col_sel, col_feats = st.columns(2, gap="large")
+    with col_sel:
+        y_col = st.selectbox('Variable dependiente (Y)', numeric_cols)
+    with col_feats:
+        X_cols = st.multiselect('Variables independientes (X)', numeric_cols)
+
+    if X_cols:
+        fig = px.scatter_matrix(df, dimensions=[y_col] + X_cols)
+        st.plotly_chart(fig)
+
+        if st.button("↪️ Ajustar modelo"):
+            X = df[X_cols].values
+            y = df[y_col].values
+
+            # Entrenar
+            model = LinearRegression()
+            model.fit(X, y)
+
+            # Parámetros
+            intercept = model.intercept_
+            coefs     = model.coef_
+            r2        = model.score(X, y)
+
+            # Mostrar coeficientes e intercepto
+            st.info("📐 **Coeficientes del modelo**")
+            coef_col, corr_col = st.columns(2, gap="large")
+            with coef_col:
+                st.metric("Intercepto (β₀)", f"{intercept:.4f}")
+                for name, c in zip(X_cols, coefs):
+                    st.metric(f"β ({name})", f"{c:.4f}")
+            with corr_col:
+                st.info("🔢 **Calidad del ajuste**")
+                st.metric("R²", f"{r2:.4f}")
+
+            # --- Nuevo gráfico Real vs. Predicho con línea roja ---
+            y_pred = model.predict(X)
+            fig2 = go.Figure()
+            # Puntos reales vs predichos
+            fig2.add_trace(go.Scatter(
+                x=y, y=y_pred,
+                mode='markers',
+                name='Predicciones'
+            ))
+            # Línea ideal y = x
+            rango = [np.min(y), np.max(y)]
+            fig2.add_trace(go.Scatter(
+                x=rango, y=rango,
+                mode='lines',
+                name='Ideal',
+                line=dict(color='red', width=2)
+            ))
+            fig2.update_layout(
+                title='Valores reales vs. predichos',
+                xaxis_title='Valor real',
+                yaxis_title='Valor predicho'
+            )
+            st.plotly_chart(fig2)
+    else:
+        st.warning("Selecciona al menos una variable independiente.")
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, roc_auc_score, confusion_matrix
+import numpy as np
+import plotly.graph_objs as go
+import plotly.express as px
 
 
 if view == 'regresion logistica':
     df_log, numeric_cols_log, text_cols_log = load_data_logistic()
-    st.title('Regresión Logística')
+    st.title('Regresión Logística (binaria)')
+
     col1, col2 = st.columns(2, gap="large")
     with col1:
-        dependent = st.selectbox('Selecciona la variable dependiente (binaria)', df_log.columns.tolist())
+        dependent = st.selectbox(
+            'Selecciona la variable dependiente (binaria)',
+            df_log.columns.tolist()
+        )
     with col2:
-        independent = st.selectbox('Selecciona la variable independiente (numérica)', numeric_cols_log)
+        independent = st.selectbox(
+            'Selecciona la variable independiente (numérica)',
+            numeric_cols_log
+        )
 
+    # Validar que Y sea binaria
     if df_log[dependent].nunique() != 2:
-        st.error("La variable dependiente seleccionada no es binaria. Por favor, selecciona otra variable.")
+        st.error("La variable dependiente no es binaria.")
     else:
-        X = df_log[[independent]]
-        y = df_log[dependent]
+        X = df_log[[independent]].values
+        y = df_log[dependent].values
 
+        # Entrenar
         model_log = LogisticRegression()
         model_log.fit(X, y)
-        st.write("Modelo entrenado correctamente.")
-        st.write("Coeficiente:", round(model_log.coef_[0][0], 2))
-        st.write("Intersección:", round(model_log.intercept_[0], 2))
-        fig_log = px.scatter(df_log, x=independent, y=dependent, title="Scatter de Regresión Logística")
+        st.success("✅ Modelo entrenado correctamente.")
+
+        # Parámetros
+        coef          = model_log.coef_[0][0]
+        intercept     = model_log.intercept_[0]
+        odds_ratio    = np.exp(coef)
+
+        # Métricas de desempeño
+        y_pred        = model_log.predict(X)
+        y_prob        = model_log.predict_proba(X)[:,1]
+        acc           = accuracy_score(y, y_pred)
+        auc           = roc_auc_score(y, y_prob)
+        cm            = confusion_matrix(y, y_pred)
+
+        # Mostrar parámetros
+        st.info("📊 **Parámetros del modelo**")
+        metrics_col, perf_col = st.columns(2, gap="large")
+        with metrics_col:
+            st.metric("Intercepto",            f"{intercept:.4f}")
+        with perf_col:
+            st.metric("Accuracy", f"{acc:.4f}")
+
+
+        # Gráfico: scatter + curva sigmoide
+        fig_log = px.scatter(
+            df_log, x=independent, y=dependent,
+            title="Scatter con Curva de Probabilidad"
+        )
+        x_line = np.linspace(df_log[independent].min(),
+                             df_log[independent].max(), 200)
+        y_line = model_log.predict_proba(x_line.reshape(-1,1))[:,1]
+        fig_log.add_trace(go.Scatter(
+            x=x_line, y=y_line,
+            mode='lines',
+            name='Curva sigmoide',
+            line=dict(color='red', width=2)
+        ))
         st.plotly_chart(fig_log)
 
-
+        # Matriz de confusión
+        st.info("🗂️ **Matriz de Confusión**")
+        fig_cm = px.imshow(
+            cm,
+            labels=dict(x="Predicción", y="Real", color="Conteo"),
+            x=model_log.classes_,
+            y=model_log.classes_,
+            text_auto=True,
+            aspect="auto",
+            title="Confusión: Real vs. Predicho"
+        )
+        st.plotly_chart(fig_cm)
 
 
 
